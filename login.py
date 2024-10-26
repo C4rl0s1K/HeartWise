@@ -74,9 +74,9 @@ class Login(customtkinter.CTkFrame):
 
             user_info = self.db.get_user_info(login)
             if user_info:
-                user_login, user_name, birth_year, user_id = user_info[0], user_info[1], user_info[2], user_info[3]
-                self.switch_to_main_page(current_user = user_login, current_user_name=user_name, current_user_birth_year=birth_year, current_user_id = user_id)
-                print(f"user_id: {user_id}, user_login: {user_login}, user_name: {user_name}, birth_year: {birth_year}")
+                user_login, user_name, birth_year, user_id, user_sex = user_info[0], user_info[1], user_info[2], user_info[3], user_info[4]
+                self.switch_to_main_page(current_user = user_login, current_user_name=user_name, current_user_birth_year=birth_year, current_user_id = user_id, current_user_sex=user_sex)
+                print(f"user_id: {user_id}, user_login: {user_login}, user_name: {user_name}, birth_year: {birth_year}, sex: {user_sex}")
 
             else:
                 messagebox.showerror("Error", "User information could not be retrieved.")

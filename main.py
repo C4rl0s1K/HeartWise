@@ -23,9 +23,9 @@ class App():
         self.current_frame = SignUp(self.root, self.show_login_page, self.show_main_page)
         self.current_frame.pack(fill="both", expand=True)
 
-    def show_main_page(self, current_user, current_user_birth_year, current_user_name, current_user_id, event=None):
+    def show_main_page(self, current_user, current_user_birth_year, current_user_name, current_user_id, current_user_sex, event=None):
          self.clear_frame()
-         self.current_frame = MainPage(self.root, self.show_login_page, current_user=current_user, current_user_birth_year=current_user_birth_year, current_user_name=current_user_name, current_user_id = current_user_id)
+         self.current_frame = MainPage(self.root, self.show_login_page, current_user=current_user, current_user_birth_year=current_user_birth_year, current_user_name=current_user_name, current_user_id = current_user_id, current_user_sex=current_user_sex)
          self.current_frame.pack(fill="both", expand=True)
 
     def clear_frame(self):

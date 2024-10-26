@@ -1,6 +1,13 @@
 import customtkinter
 from database import Database
 from datetime import datetime
+from prediction_model import *
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
+
 from PIL import Image
 from tkinter import messagebox
 import matplotlib.pyplot as plt
@@ -9,7 +16,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class MainPage(customtkinter.CTkFrame):
 
-    def __init__(self, master, switch_to_login_page, current_user, current_user_birth_year, current_user_name, current_user_id):
+    def __init__(self, master, switch_to_login_page, current_user, current_user_birth_year, current_user_name, current_user_id, current_user_sex):
         super().__init__(master, fg_color="#ffe5ec", corner_radius=0)
         self.switch_to_login_page = switch_to_login_page
         self.current_user = current_user
@@ -17,7 +24,9 @@ class MainPage(customtkinter.CTkFrame):
         self.current_user_name = current_user_name
         self.current_user_birth_year = current_user_birth_year
         self.current_user_id = current_user_id
+        self.current_user_sex = current_user_sex
         self.db = Database()
+        self.prediction_model, self.scaler = get_model_and_scaler()
 
         self.create_top_widgets()
         self.create_input_widgets()
@@ -180,36 +189,109 @@ class MainPage(customtkinter.CTkFrame):
         self.db.add_heart_parameters(user_id = self.current_user_id, chest_pain_type = chest_pain_type, resting_blood_pressure = int(resting_blood_pressure), serum_cholestoral = int(serum_cholestoral), fasting_blood_sugar = fasting_blood_sugar,resting_electrocardiographic = resting_electrocardiographic, max_heart_rate = int(max_heart_rate), exercise_induced_angina = exercise_induced_angina , oldpeak = float(oldpeak), vessels = vessels, thal = thal)
         messagebox.showinfo("Success", "Your heart parameters have been added to the database.")
 
+        self.show_prediction()
+
+
     def create_analysis_widgets(self):
             
-            self.plot_frame = customtkinter.CTkFrame(self, fg_color="#FB6F92", width=400, height=400, corner_radius=0)
-            self.plot_frame.place(x=450, y=220)
+        self.plot_frame = customtkinter.CTkFrame(self, fg_color="#FB6F92", width=500, height=450, corner_radius=0)
+        self.plot_frame.place(x=450, y=220)
 
-            self.button = customtkinter.CTkButton(self.plot_frame, text="Wykres", command=self.plot)
-            self.button.pack(pady = 10)
+        self.switch_button = customtkinter.CTkSegmentedButton(self.plot_frame, values=["Prediction", "Heart Charts"])
+        self.switch_button.place(x=5,y=5)
+        self.switch_button.set("Prediction")
+        self.switch_button.configure(command=self.on_switch_changed)
 
-    def plot(self):
-        user_id = self.current_user_id
-        user_data = self.db.get_user_heart_parameters_plot(user_id)
-        print(user_data)
+    def on_switch_changed(self, value):
+        if value == "Prediction":
+            self.show_prediction()
+        else:
+            print("under constracting")
 
-        if user_data:
-            ids = [row[0] for row in user_data]
-            blood_pressure =  [row[2] for row in user_data]
-            cholesterol = [row[3] for row in user_data]
-            heart_rate = [row[4] for row in user_data]
+    def show_prediction(self):
+        try:
+            input_data = (
+            int(datetime.today().strftime("%Y")) - self.current_user_birth_year,
+            int(self.current_user_sex),
+            self.chest_pain_map()[self.cp_option_menu.get()],
+            int(self.trestbps_entry.get()), 
+            int(self.chol_entry.get()),  
+            self.fbs_var.get(), 
+            self.restecg_map()[self.restecg_option_menu.get()], 
+            int(self.thalach_entry.get()),
+            self.exang_var.get(),
+            float(self.oldpeak_entry.get()), 
+            self.slope_map()[self.slope_option_menu.get()], 
+            self.ca_map()[self.vesels_option_menu.get()],
+            self.thal_map()[self.thal_option_menu.get()]
+        )
 
-            fig, ax = plt.subplots()
-            ax.plot(ids, blood_pressure, label='Ciśnienie krwi', marker='o')
-            ax.plot(ids, cholesterol, label='Cholesterol', marker='x')
-            ax.plot(ids, heart_rate, label='Tętno', marker='s')  
+            input_data_as_numpy_array = np.asarray(input_data)
+            input_data_scaled = self.scaler.transform(input_data_as_numpy_array.reshape(1, -1))
+            prediction = self.prediction_model.predict(input_data_scaled)
 
-            ax.set_xlabel('ID (kolejne pomiary)')
-            ax.set_ylabel('Wartości')
-            ax.set_title('Parametry zdrowotne użytkownika')
-            ax.legend()     
+            if prediction[0] == 0:
+                # result_text = "Osoba o podanych parametrach nie ma choroby serca."
+                print("Osoba o podanych parametrach nie ma choroby serca.")
+            else:
+                # result_text = "Osoba o podanych parametrach ma chore serce."
+                print("Osoba o podanych parametrach ma chore serce.")
 
-            canvas = FigureCanvasTkAgg(fig, self.plot_frame)
-            canvas.draw()
-            canvas.get_tk_widget().pack(side="top", fill="both", expand=True)
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numerical values.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # def plot(self):
+    #     user_id = self.current_user_id
+    #     user_data = self.db.get_user_heart_parameters_plot(user_id)
+    #     print(user_data)
+
+    #     for widget in self.plot_frame.winfo_children():
+    #         if isinstance(widget, FigureCanvasTkAgg):
+    #             widget.get_tk_widget().destroy()
+
+    #     if user_data:
+    #         ids = [row[0] for row in user_data]
+    #         blood_pressure =  [row[2] for row in user_data]
+    #         cholesterol = [row[3] for row in user_data]
+    #         heart_rate = [row[4] for row in user_data]
+
+    #         fig, ax = plt.subplots(figsize=(5, 3), dpi = 100)
+    #         ax.plot(ids, blood_pressure, label="Blood Pressure", marker="o")
+    #         ax.plot(ids, cholesterol, label="Cholesterol", marker="x")
+    #         ax.plot(ids, heart_rate, label="Heart Rate", marker="s")  
+
+    #         ax.set_xlabel("IDs (consecutive measurements)")
+    #         ax.set_ylabel("Values")
+    #         # ax.set_title("Your Heart Parameters Over Time")
+    #         # ax.legend()     
+
+    #         canvas = FigureCanvasTkAgg(fig, self.plot_frame)
+    #         canvas.draw()
+    #         canvas.get_tk_widget().pack(side="top", fill="both", expand=True)
+    #         self.plot_frame.update_idletasks()
     

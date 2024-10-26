@@ -62,7 +62,7 @@ class Database():
         return self.cursor.fetchone()
     
     def get_user_info(self, login):
-        self.cursor.execute("SELECT login, name, birth_year, id from users WHERE login = ?", (login, ))
+        self.cursor.execute("SELECT login, name, birth_year, id, sex from users WHERE login = ?", (login, ))
         return self.cursor.fetchone()
     
     def get_user_heart_parameters_plot(self, user_id):
