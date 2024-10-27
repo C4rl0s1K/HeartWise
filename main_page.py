@@ -200,13 +200,38 @@ class MainPage(customtkinter.CTkFrame):
         self.switch_button = customtkinter.CTkSegmentedButton(self.plot_frame, values=["Prediction", "Heart Charts"])
         self.switch_button.place(x=5,y=5)
         self.switch_button.set("Prediction")
-        self.switch_button.configure(command=self.on_switch_changed)
+        self.switch_button.configure(command=lambda value: self.on_switch_changed(value))
+
+        self.info_label = customtkinter.CTkLabel(self.plot_frame, text="", font=("Inter", 16, "bold"), wraplength=450)
+
+        self.info2 = customtkinter.CTkLabel(self.plot_frame, text="", font=("Inter", 16, "bold"))
+
+        self.last_prediction_text = None
+
+        self.on_switch_changed("Prediction") 
+
 
     def on_switch_changed(self, value):
+
+        # for widget in self.plot_frame.winfo_children():
+        #     if widget != self.switch_button:
+        #         widget.destroy()
+    
         if value == "Prediction":
-            self.show_prediction()
+            if self.last_prediction_text:
+                self.info2.configure(text=self.last_prediction_text, wraplength=450)
+                self.info_label.place_forget()
+                self.info2.place(x=50, y=400)
+            else:
+                self.show_prediction()
+                self.info_label.configure(text="Please enter your heart parameters.\nOnce entered, you will receive an assessment of your heart condition.")
+                self.info_label.place(x=50, y=150)
+                self.info2.place_forget()
         else:
-            print("under constracting")
+            self.info_label.place_forget()
+            self.info2.place_forget()
+            self.info_label.configure(text="Here you will see heart charts based on your data.\nPlease wait while we generate the charts.")
+            self.info_label.place(x=50, y=150)
 
     def show_prediction(self):
         try:
@@ -223,22 +248,24 @@ class MainPage(customtkinter.CTkFrame):
             float(self.oldpeak_entry.get()), 
             self.slope_map()[self.slope_option_menu.get()], 
             self.ca_map()[self.vesels_option_menu.get()],
-            self.thal_map()[self.thal_option_menu.get()]
-        )
+            self.thal_map()[self.thal_option_menu.get()])
 
             input_data_as_numpy_array = np.asarray(input_data)
             input_data_scaled = self.scaler.transform(input_data_as_numpy_array.reshape(1, -1))
             prediction = self.prediction_model.predict(input_data_scaled)
 
             if prediction[0] == 0:
-                # result_text = "Osoba o podanych parametrach nie ma choroby serca."
+                self.last_prediction_text = "Based on the provided parameters, your heart is healthy!"
                 print("Osoba o podanych parametrach nie ma choroby serca.")
             else:
-                # result_text = "Osoba o podanych parametrach ma chore serce."
-                print("Osoba o podanych parametrach ma chore serce.")
+                self.last_prediction_text = "Based on the provided parameters, your heart may be diseased..."
+
+            self.info2.configure(text=self.last_prediction_text, wraplength=450)
+            self.info_label.place_forget()
+            self.info2.place(x=50, y=400)
 
         except ValueError:
-            messagebox.showerror("Error", "Please enter valid numerical values.")
+            print("Proszę uzupełnić wszystkie dane.")
 
 
 
