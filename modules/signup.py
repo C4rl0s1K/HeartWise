@@ -1,7 +1,7 @@
 import customtkinter
 from PIL import Image
 import datetime
-from database import Database
+from modules.database import Database
 from tkinter import messagebox
 
 

@@ -1,7 +1,7 @@
 import customtkinter
-from database import Database
+from modules.database import Database
 from datetime import datetime
-from prediction_model import *
+from modules.prediction_model import *
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression

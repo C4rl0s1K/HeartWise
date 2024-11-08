@@ -1,7 +1,7 @@
 import customtkinter
-from login import Login
-from signup import SignUp
-from main_page import MainPage
+from modules.login import Login
+from modules.signup import SignUp
+from modules.main_page import MainPage
 
 class App():
 

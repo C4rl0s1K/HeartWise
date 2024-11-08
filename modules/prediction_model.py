@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 def get_model_and_scaler():
-    file = "heart.csv"
+    file = "data/heart.csv"
     data_heart = pd.read_csv(file)
 
     data_heart.drop_duplicates(inplace=True)
@@ -33,8 +33,8 @@ def get_model_and_scaler():
     X_test_prediction = model.predict(X_test_scaled)
     testing_data_accuracy = accuracy_score(X_test_prediction, Y_test)
 
-    print(f"Dokładność danych treningowych: {training_data_accuracy}")
-    print(f"Dokładność danych testowych: {testing_data_accuracy}")
+    # print(f"Dokładność danych treningowych: {training_data_accuracy}")
+    # print(f"Dokładność danych testowych: {testing_data_accuracy}")
 
     return model, scaler
 
