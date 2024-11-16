@@ -24,7 +24,7 @@ HeartWise is a desktop application designed to predict heart health based on var
 To get started, clone the repository to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/HeartWise.git
+git clone https://github.com/C4rl0s1K/HeartWise.git
 cd HeartWise
 ```
 
